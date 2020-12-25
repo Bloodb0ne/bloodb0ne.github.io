@@ -1,0 +1,475 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ConstFuse or Building Parser Combinators using C++ 17 - Treebound Science / Maybe everything can be expressed as a tree structure</title>
+    <meta property="og:title" content="ConstFuse or Building Parser Combinators using C++ 17">
+    <meta property="og:site_name" content="Treebound Science / Maybe everything can be expressed as a tree structure">
+    <meta property="og:url" content="http://bloodb0ne.github.io">
+    <meta property="og:description" content="An adventure on parsing and using/abusing C++ 17 features to create a parser combinator">
+    <meta property="og:type" content="article">
+    <meta property="og:image" content="http://bloodb0ne.github.io/images/constfuse_article.png">
+
+</head>
+<link rel="preconnect" href="https://fonts.gstatic.com">
+<link href="https://fonts.googleapis.com/css2?family=Open+Sans&family=Roboto:wght@100;300;400;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style/main.css">
+<link rel="stylesheet" href="style/prism.css">
+<script src="scripts/main.js"></script>
+
+<script>
+  
+
+  window.addEventListener('load', (event) => {
+      document.querySelectorAll("mjx-container").forEach(function(x){
+        x.parentElement.classList += 'has-jax'})
+    });
+
+</script>
+<script type="text/javascript" id="MathJax-script" async
+  src="https://cdn.jsdelivr.net/npm/mathjax@3.0.0/es5/tex-chtml-full.js">
+</script>
+
+    <header>
+        <a href='index.html' class='logo'>
+            <svg width="48" height="48" version="1.1" viewBox="0 0 12.7 12.7" xmlns="http://www.w3.org/2000/svg">
+     <defs>
+      <marker id="TriangleOutM" overflow="visible" orient="auto">
+       <path transform="scale(.4)" d="m5.77 0-8.65 5v-10l8.65 5z" fill-rule="evenodd" stroke="#000" fill="#fff" stroke-width="1pt"/>
+      </marker>
+      <marker id="TriangleOutM-6" overflow="visible" orient="auto">
+       <path transform="scale(.4)" d="m5.77 0-8.65 5v-10z" fill-rule="evenodd" stroke="#000" fill="#fff" stroke-width="1pt"/>
+      </marker>
+     </defs>
+     <g transform="translate(0,-284.3)">
+      <g transform="matrix(1.1658,0,0,1.0998,-1.2421,-31.948)" aria-label="⨁">
+       <path d="m6.7634 288.2q-0.19162-0.0808-0.41061-0.0808t-0.41061 0.0808q-0.18751 0.0794-0.34354 0.23542-0.15877 0.15739-0.23678 0.34627-0.078015 0.18888-0.078015 0.41198 0 0.21762 0.078015 0.4065t0.23678 0.34627q0.15603 0.15603 0.34354 0.23542 0.19162 0.0808 0.41061 0.0808t0.41061-0.0808q0.18751-0.0794 0.34354-0.23542 0.15877-0.15739 0.23678-0.34627 0.078015-0.18888 0.078015-0.4065 0-0.2231-0.078015-0.41198t-0.23678-0.34627q-0.15603-0.15603-0.34354-0.23542zm-0.9266-0.22583q0.24363-0.10813 0.51599-0.10813 0.27237 0 0.50641 0.0985t0.4284 0.29153q0.19435 0.19435 0.29153 0.42977 0.095808 0.23267 0.095808 0.50778 0 0.26963-0.095808 0.50504-0.097177 0.23268-0.29153 0.42703-0.19435 0.19299-0.4284 0.29153-0.23405 0.0985-0.50641 0.0985-0.27237 0-0.50641-0.0985t-0.4284-0.29153q-0.19435-0.19435-0.29153-0.42703-0.095808-0.23541-0.095808-0.50504 0-0.27511 0.095808-0.50778 0.097177-0.23542 0.29153-0.42977 0.17519-0.17519 0.41882-0.28195zm0.63096 0.20941v0.89375h0.89375v0.23268h-0.89375v0.89375h-0.22994v-0.89375h-0.89375v-0.23268h0.89375v-0.89375z" stroke-width=".095559"/>
+      </g>
+      <g stroke="#000">
+       <path d="m5.1869 288.39-1.7355 3.4286" fill="none" marker-end="url(#TriangleOutM)" stroke="#000" stroke-width=".34496px"/>
+       <g fill="#ffffed">
+        <g stroke-linecap="round" stroke-linejoin="round">
+         <ellipse cx="2.0582" cy="294.97" rx="1.8798" ry="1.8235" stroke-width=".1544"/>
+         <path transform="matrix(.26458 0 0 .26458 0 284.3)" d="m38.438 34.09a8.9193 6.8047 0 0 0-8.9199 6.8047 8.9193 6.8047 0 0 0 8.9199 6.8047 8.9193 6.8047 0 0 0 8.9199-6.8047 8.9193 6.8047 0 0 0-8.9199-6.8047zm0 0.95312a5.9082 3.2066 0 0 1 5.9082 3.2051 5.9082 3.2066 0 0 1-5.9082 3.207 5.9082 3.2066 0 0 1-5.9082-3.207 5.9082 3.2066 0 0 1 5.9082-3.2051z" stroke-width=".58356"/>
+        </g>
+        <g stroke-width=".1544">
+         <path d="m0.62189 294.31c-0.5132 0.43858-0.44395 0.76825-0.44395 0.76825"/>
+         <path d="m1.1964 294.67c-0.89579 0.69627-0.75961 1.2111-0.75961 1.2111"/>
+         <path d="m1.0873 295.29c-0.56049 0.498-0.46195 0.84985-0.46195 0.84985"/>
+         <path d="m1.3298 295.62c-0.51639 0.43521-0.44955 0.76533-0.44955 0.76533"/>
+        </g>
+        <g stroke-width=".10504">
+         <path d="m1.4212 296.03c-0.32157 0.33236-0.28655 0.58341-0.28655 0.58341"/>
+         <path d="m8.2267 295.25c-0.29782 0.35151-0.24546 0.59985-0.24546 0.59985"/>
+         <path d="m8.8718 295.89c-0.29782 0.35151-0.24546 0.59985-0.24546 0.59985"/>
+         <path d="m8.397 295.5c-0.29782 0.35148-0.24546 0.59985-0.24546 0.59985"/>
+         <path d="m8.1301 294.98c-0.29782 0.35148-0.24546 0.59985-0.24546 0.59985"/>
+         <path d="m8.5923 295.69c-0.29782 0.3515-0.24546 0.59985-0.24546 0.59985"/>
+        </g>
+        <path d="m8.9301 294.34c0.86746-0.69546 1.6021-0.53205 2.4696-0.0251" stroke-linecap="round" stroke-width=".77201"/>
+        <path d="m1.0259 294.35c-0.89229 0.70025-0.75352 1.2144-0.75352 1.2144" stroke-width=".1544"/>
+       </g>
+       <path d="m7.0705 288.39 1.7355 3.4286" fill="none" marker-end="url(#TriangleOutM-6)" stroke-width=".34496px"/>
+      </g>
+     </g>
+    </svg>
+    
+            </a>
+            <div>
+                <a href="https://twitter.com/emilianbr">
+                    <svg version="1.1" id="White" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px"
+                        viewBox="0 0 400 400" style="enable-background:new 0 0 400 400;" xml:space="preserve">
+                    <path class="st0" d="M400,200c0,110.5-89.5,200-200,200S0,310.5,0,200S89.5,0,200,0S400,89.5,400,200z M163.4,305.5
+                        c88.7,0,137.2-73.5,137.2-137.2c0-2.1,0-4.2-0.1-6.2c9.4-6.8,17.6-15.3,24.1-25c-8.6,3.8-17.9,6.4-27.7,7.6
+                        c10-6,17.6-15.4,21.2-26.7c-9.3,5.5-19.6,9.5-30.6,11.7c-8.8-9.4-21.3-15.2-35.2-15.2c-26.6,0-48.2,21.6-48.2,48.2
+                        c0,3.8,0.4,7.5,1.3,11c-40.1-2-75.6-21.2-99.4-50.4c-4.1,7.1-6.5,15.4-6.5,24.2c0,16.7,8.5,31.5,21.5,40.1c-7.9-0.2-15.3-2.4-21.8-6
+                        c0,0.2,0,0.4,0,0.6c0,23.4,16.6,42.8,38.7,47.3c-4,1.1-8.3,1.7-12.7,1.7c-3.1,0-6.1-0.3-9.1-0.9c6.1,19.2,23.9,33.1,45,33.5
+                        c-16.5,12.9-37.3,20.6-59.9,20.6c-3.9,0-7.7-0.2-11.5-0.7C110.8,297.5,136.2,305.5,163.4,305.5"/>
+                    </svg>
+                </a>
+                <a href="https://github.com/bloodb0ne">
+                    <svg version="1.1" viewBox="0 0 11.493 11.209" xmlns="http://www.w3.org/2000/svg">
+                    <g transform="translate(-45.658 -38.151)">
+                    <path d="m51.404 38.151c-3.1729 0-5.746 2.5728-5.746 5.7468 0 2.5386 1.6464 4.6926 3.9299 5.4529 0.28751 0.05256 0.39229-0.12488 0.39229-0.27728 0-0.13652-0.0049-0.49777-0.0078-0.97719-1.5984 0.34713-1.9357-0.77047-1.9357-0.77047-0.26141-0.66393-0.63818-0.84067-0.63818-0.84067-0.52176-0.3563 0.03951-0.34925 0.03951-0.34925 0.57679 0.04057 0.88018 0.59231 0.88018 0.59231 0.51259 0.87806 1.3451 0.62442 1.6725 0.47731 0.05221-0.37112 0.20073-0.62442 0.36477-0.768-1.276-0.14534-2.6176-0.63818-2.6176-2.8402 0-0.62759 0.22401-1.1402 0.59161-1.542-0.05927-0.14534-0.25647-0.72954 0.05644-1.5208 0 0 0.48225-0.15452 1.5801 0.58879 0.45826-0.12735 0.95003-0.19085 1.4386-0.19332 0.48824 0.0025 0.97966 0.06597 1.4386 0.19332 1.0971-0.7433 1.5787-0.58879 1.5787-0.58879 0.31362 0.79128 0.11642 1.3755 0.0575 1.5208 0.3683 0.40181 0.59055 0.9144 0.59055 1.542 0 2.2077-1.3437 2.6935-2.6236 2.8356 0.20602 0.17745 0.38982 0.52811 0.38982 1.0643 0 0.768-0.0071 1.3878-0.0071 1.5762 0 0.15381 0.10372 0.33267 0.39511 0.27658 2.2818-0.76165 3.9268-2.9139 3.9268-5.4522 0-3.1739-2.5732-5.7468-5.7471-5.7468" fill="#1b1817" fill-rule="evenodd"/>
+                    </g>
+                    </svg>
+                </a>
+                <a href="rss.xml">
+    <svg version="1.1" viewBox="0 0 60 60" xml:space="preserve" xmlns="http://www.w3.org/2000/svg"><path d="m41.164 42.268h5.104c0-14.633-11.904-26.545-26.535-26.545v5.09c11.814-1e-3 21.431 9.626 21.431 21.455zm-17.898 9e-3c1.957 0 3.538-1.572 3.538-3.521 0-1.938-1.581-3.528-3.538-3.528-1.949 0-3.533 1.59-3.533 3.528-1e-3 1.949 1.583 3.521 3.533 3.521zm8.877-7e-3h5.11c0-9.664-7.862-17.525-17.521-17.525v5.088c3.313 0 6.429 1.295 8.774 3.643 2.344 2.34 3.637 5.469 3.637 8.794zm-2.143 17.73c-16.568 0-30-13.432-30-30 0-16.569 13.432-30 30-30s30 13.431 30 30c0 16.568-13.432 30-30 30z" clip-rule="evenodd" fill="#010101" fill-rule="evenodd"/></svg>
+                </a>
+            </div>
+    </header>    <main class="parent">
+    <div class="sidebar box"></div>
+    <div class="content box">
+        <section id='title-section'>
+            <h1>ConstFuse or Building Parser Combinators using C++ 17</h1>
+            <div class='datetime'><time datetime="2020-04-11T20:00:00.000Z">11 April 2020</time></div>
+            <p>An adventure on parsing and using/abusing C++ 17 features to create a parser combinator</p>
+        </section>
+    <p>Everything started with an idea to explore the new features introduced in the C++ 17 such as folding expressions and ease of use of some meta template programming. That being said i don’t advocate into using meta programming for everything but it has its uses. Certain things cant be done without having to resolve to some code duplication or a ugly unreadable mess.</p>
+<p>After trying at least five different prototypes of the structure and execution of combinator parsers i settled on a pretty simple solution abstracting combinators and parsers on their own.
+First and foremost lets introduce the concept of combinator parsers. Its a pattern revolving around simple parsers ( functions that recognize input ) and combinators that act like higher order functions accepting parsers and returning a parser.
+For example lets say we have a parser called Number recognizing a single digit number and a combinator Repeat that repeats a parser one or more times. Then the parser <code>Repeat(Number())</code> would be recognizing numbers comprised of multiple digits. Most parser combinator libraries are made in/using functional languages because of their nature and the ease of use and flexibility that they offer.</p>
+<p><a href=https://github.com/Bloodb0ne/ConstFuse alt=null>Link to the project</a></p>
+<h1 id="alternatives">Alternatives<a href="#alternatives">
+				<svg width="32" height="32" version="1.1" viewBox="0 0 8.4667 8.4667" xmlns="http://www.w3.org/2000/svg">
+					<g transform="translate(0 -288.53)" fill="none"  stroke-linecap="round" stroke-linejoin="round">
+					<path d="m2.9277 291.21s1.9513-1.4763 2.9923-2.1296c0.71619-0.44948 2.4456 1.1412 1.8323 1.7128-1.0188 0.94949-2.7281 2.393-3.6841 3.1919-0.42527 0.3554-1.0085-0.0202-1.0085-0.0202-0.34667-0.20565-0.53525-0.38994-0.67523-0.74058" stroke-width=".65774"/>
+					<path d="m3.3906 295.24s-0.1942 0.40002-0.5869 1.1576c-0.26611 0.51336-2.1009 0.33429-1.991-0.24053 0.18268-0.9549 0.60053-2.9608 0.80778-3.8003 0.092199-0.37346 0.76722-0.33226 0.76722-0.33226 0.26803 3.7e-4 0.77273 0.25652 0.98514 0.4206" stroke-width=".5"/>
+					</g>
+				</svg> 
+			</a>
+		</h1><p>When it comes to parsing there are a lot of options you can explore and it all depends on what the requirements that you have. Two of the great examples would be <a href=https://www.antlr.org/ alt=null>ANTLR</a> and of course <a href=http://boost-spirit.com/ alt=null>Boost Spirit</a> to give show something from the C++ world. The best example of how a parser combinator library looks like in the functional world is Parsec, a library written in Haskell <a href=https://hackage.haskell.org/package/parsec alt=null>Parsec</a>.</p>
+<h1 id="on-an-adventure">On an adventure<a href="#on-an-adventure">
+				<svg width="32" height="32" version="1.1" viewBox="0 0 8.4667 8.4667" xmlns="http://www.w3.org/2000/svg">
+					<g transform="translate(0 -288.53)" fill="none"  stroke-linecap="round" stroke-linejoin="round">
+					<path d="m2.9277 291.21s1.9513-1.4763 2.9923-2.1296c0.71619-0.44948 2.4456 1.1412 1.8323 1.7128-1.0188 0.94949-2.7281 2.393-3.6841 3.1919-0.42527 0.3554-1.0085-0.0202-1.0085-0.0202-0.34667-0.20565-0.53525-0.38994-0.67523-0.74058" stroke-width=".65774"/>
+					<path d="m3.3906 295.24s-0.1942 0.40002-0.5869 1.1576c-0.26611 0.51336-2.1009 0.33429-1.991-0.24053 0.18268-0.9549 0.60053-2.9608 0.80778-3.8003 0.092199-0.37346 0.76722-0.33226 0.76722-0.33226 0.26803 3.7e-4 0.77273 0.25652 0.98514 0.4206" stroke-width=".5"/>
+					</g>
+				</svg> 
+			</a>
+		</h1><p>The end goal of this adventure was to use interesting interactions with the C++ templating type system and create a simple single header library that’s easy to use and extend. Another main focus was making the grammars constructed with the combinators to be readable and maybe even fully <strong>constexpr</strong>.
+Every component of the library is basically a Functor or simply put, a class/struct that has overloaded the call operator ( operator() ), so it can be used as a function but still has some context.</p>
+<pre class="code-segment"><code class="language-cpp" data-language="cpp"><span class="token keyword">struct</span> <span class="token class-name">SampleParser</span> <span class="token punctuation">{</span>
+    <span class="token keyword">using</span> is_parser_type <span class="token operator">=</span> std<span class="token operator">::</span>true_type<span class="token punctuation">;</span>
+    <span class="token keyword">using</span> return_type <span class="token operator">=</span> <span class="token keyword">int</span><span class="token punctuation">;</span>
+
+    <span class="token keyword">template</span><span class="token operator">&lt;</span><span class="token keyword">typename</span> <span class="token class-name">Iterator</span><span class="token operator">></span>
+    <span class="token keyword">bool</span> <span class="token keyword">operator</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">(</span>Iterator<span class="token operator">&amp;</span> it<span class="token punctuation">,</span> Iterator end<span class="token punctuation">,</span> return_type<span class="token operator">*</span> r<span class="token punctuation">)</span> <span class="token keyword">const</span><span class="token punctuation">{</span>
+    <span class="token keyword">return</span> <span class="token boolean">true</span><span class="token punctuation">;</span>
+  <span class="token punctuation">}</span>
+<span class="token punctuation">}</span><span class="token punctuation">;</span></code></pre>
+<p>This simplification keeps us from needing any sort of inheritance and we can also use/abuse <strong>constexpr</strong> so we get a simpler binary generated by the compiler. The call operator returns bool because we want to use it in a clever way with fold expressions. Using the traits is_parser_type and return_type we identify that this in fact is a parser and that can later be applied with Concept that are being introduced in C++ 20, but for now we can use the usual <strong>SFINAE</strong> tricks.</p>
+<p>Lets explore a basic set of combinators <code>Sequence</code>, <code>Repeat</code>, <code>Many</code>, <code>Optional</code>, <code>Any</code> .</p>
+<h2 id="sequence">Sequence</h2><p>Combining N parsers into a single one that recognized them in the order they are passed in the constructor of the combinator. At the core of it you see we are using a helper so we go over each parser and store its result in the respective position of the tuple.</p>
+<pre class="code-segment"><code class="language-cpp" data-language="cpp"><span class="token keyword">template</span><span class="token operator">&lt;</span><span class="token keyword">typename</span> <span class="token punctuation">.</span><span class="token punctuation">.</span><span class="token punctuation">.</span>Parsers<span class="token operator">></span>
+<span class="token keyword">struct</span> <span class="token class-name">Seq</span> <span class="token punctuation">{</span>
+
+    <span class="token keyword">using</span> is_parser_type <span class="token operator">=</span> std<span class="token operator">::</span>true_type<span class="token punctuation">;</span>
+    <span class="token keyword">using</span> return_type <span class="token operator">=</span> <span class="token keyword">typename</span> <span class="token class-name">std</span><span class="token operator">::</span>tuple<span class="token operator">&lt;</span><span class="token keyword">typename</span> <span class="token class-name">Parsers</span><span class="token operator">::</span>return_type<span class="token punctuation">.</span><span class="token punctuation">.</span><span class="token punctuation">.</span><span class="token operator">></span><span class="token punctuation">;</span>
+    <span class="token keyword">using</span> container_type <span class="token operator">=</span> <span class="token keyword">typename</span> <span class="token class-name">std</span><span class="token operator">::</span>tuple<span class="token operator">&lt;</span>Parsers<span class="token punctuation">.</span><span class="token punctuation">.</span><span class="token punctuation">.</span><span class="token operator">></span><span class="token punctuation">;</span>
+
+
+    container_type <span class="token keyword">const</span> parsers<span class="token punctuation">;</span>
+
+    <span class="token keyword">explicit</span> <span class="token keyword">constexpr</span> <span class="token function">Seq</span><span class="token punctuation">(</span>Parsers <span class="token keyword">const</span><span class="token operator">&amp;</span> <span class="token punctuation">.</span><span class="token punctuation">.</span><span class="token punctuation">.</span>p<span class="token punctuation">)</span> <span class="token operator">:</span><span class="token function">parsers</span><span class="token punctuation">(</span>p<span class="token punctuation">.</span><span class="token punctuation">.</span><span class="token punctuation">.</span><span class="token punctuation">)</span> <span class="token punctuation">{</span><span class="token punctuation">}</span><span class="token punctuation">;</span>
+
+    <span class="token keyword">template</span><span class="token operator">&lt;</span><span class="token keyword">typename</span> <span class="token class-name">Iterator</span><span class="token operator">></span>
+    <span class="token keyword">bool</span> <span class="token keyword">operator</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">(</span>Iterator<span class="token operator">&amp;</span> it<span class="token punctuation">,</span> Iterator end<span class="token punctuation">,</span> return_type<span class="token operator">*</span> result<span class="token punctuation">)</span> <span class="token keyword">const</span><span class="token punctuation">{</span>
+
+        return_type tmp<span class="token punctuation">;</span>
+        Iterator backtrack <span class="token operator">=</span> it<span class="token punctuation">;</span>
+        <span class="token keyword">bool</span> res <span class="token operator">=</span> std<span class="token operator">::</span><span class="token function">apply</span><span class="token punctuation">(</span>all_applicator_res<span class="token operator">&lt;</span>Iterator<span class="token punctuation">,</span> return_type<span class="token punctuation">,</span> Parsers<span class="token punctuation">.</span><span class="token punctuation">.</span><span class="token punctuation">.</span><span class="token operator">></span><span class="token punctuation">,</span> parsers<span class="token punctuation">)</span><span class="token punctuation">(</span>it<span class="token punctuation">,</span> end<span class="token punctuation">,</span> tmp<span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+        <span class="token keyword">if</span> <span class="token punctuation">(</span>res<span class="token punctuation">)</span> <span class="token punctuation">{</span>
+            <span class="token operator">*</span>result <span class="token operator">=</span> tmp<span class="token punctuation">;</span>
+        <span class="token punctuation">}</span>
+        <span class="token keyword">else</span> <span class="token punctuation">{</span>
+            it <span class="token operator">=</span> backtrack<span class="token punctuation">;</span>
+        <span class="token punctuation">}</span>
+        <span class="token keyword">return</span> res<span class="token punctuation">;</span>
+    <span class="token punctuation">}</span>
+<span class="token punctuation">}</span><span class="token punctuation">;</span></code></pre>
+<h2 id="repeat">Repeat</h2><p>Does the same as + in Regular Expressions for a single parser, matches once or more times what the parser passed matches</p>
+<pre class="code-segment"><code class="language-cpp" data-language="cpp"><span class="token keyword">template</span><span class="token operator">&lt;</span><span class="token keyword">typename</span> <span class="token punctuation">.</span><span class="token punctuation">.</span><span class="token punctuation">.</span>Parsers<span class="token operator">></span>
+<span class="token keyword">struct</span> <span class="token class-name">Seq</span> <span class="token punctuation">{</span>
+
+    <span class="token keyword">using</span> is_parser_type <span class="token operator">=</span> std<span class="token operator">::</span>true_type<span class="token punctuation">;</span>
+    <span class="token keyword">using</span> return_type <span class="token operator">=</span> <span class="token keyword">typename</span> <span class="token class-name">std</span><span class="token operator">::</span>tuple<span class="token operator">&lt;</span><span class="token keyword">typename</span> <span class="token class-name">Parsers</span><span class="token operator">::</span>return_type<span class="token punctuation">.</span><span class="token punctuation">.</span><span class="token punctuation">.</span><span class="token operator">></span><span class="token punctuation">;</span>
+    <span class="token keyword">using</span> container_type <span class="token operator">=</span> <span class="token keyword">typename</span> <span class="token class-name">std</span><span class="token operator">::</span>tuple<span class="token operator">&lt;</span>Parsers<span class="token punctuation">.</span><span class="token punctuation">.</span><span class="token punctuation">.</span><span class="token operator">></span><span class="token punctuation">;</span>
+
+
+    container_type <span class="token keyword">const</span> parsers<span class="token punctuation">;</span>
+
+    <span class="token keyword">explicit</span> <span class="token keyword">constexpr</span> <span class="token function">Seq</span><span class="token punctuation">(</span>Parsers <span class="token keyword">const</span><span class="token operator">&amp;</span> <span class="token punctuation">.</span><span class="token punctuation">.</span><span class="token punctuation">.</span>p<span class="token punctuation">)</span> <span class="token operator">:</span><span class="token function">parsers</span><span class="token punctuation">(</span>p<span class="token punctuation">.</span><span class="token punctuation">.</span><span class="token punctuation">.</span><span class="token punctuation">)</span> <span class="token punctuation">{</span><span class="token punctuation">}</span><span class="token punctuation">;</span>
+
+    <span class="token keyword">template</span><span class="token operator">&lt;</span><span class="token keyword">typename</span> <span class="token class-name">Iterator</span><span class="token operator">></span>
+    <span class="token keyword">bool</span> <span class="token keyword">operator</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">(</span>Iterator<span class="token operator">&amp;</span> it<span class="token punctuation">,</span> Iterator end<span class="token punctuation">,</span> return_type<span class="token operator">*</span> result<span class="token punctuation">)</span> <span class="token keyword">const</span><span class="token punctuation">{</span>
+
+        return_type tmp<span class="token punctuation">;</span>
+        Iterator backtrack <span class="token operator">=</span> it<span class="token punctuation">;</span>
+        <span class="token keyword">bool</span> res <span class="token operator">=</span> std<span class="token operator">::</span><span class="token function">apply</span><span class="token punctuation">(</span>all_applicator_res<span class="token operator">&lt;</span>Iterator<span class="token punctuation">,</span> return_type<span class="token punctuation">,</span> Parsers<span class="token punctuation">.</span><span class="token punctuation">.</span><span class="token punctuation">.</span><span class="token operator">></span><span class="token punctuation">,</span> parsers<span class="token punctuation">)</span><span class="token punctuation">(</span>it<span class="token punctuation">,</span> end<span class="token punctuation">,</span> tmp<span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+        <span class="token keyword">if</span> <span class="token punctuation">(</span>res<span class="token punctuation">)</span> <span class="token punctuation">{</span>
+            <span class="token operator">*</span>result <span class="token operator">=</span> tmp<span class="token punctuation">;</span>
+        <span class="token punctuation">}</span>
+        <span class="token keyword">else</span> <span class="token punctuation">{</span>
+            it <span class="token operator">=</span> backtrack<span class="token punctuation">;</span>
+        <span class="token punctuation">}</span>
+        <span class="token keyword">return</span> res<span class="token punctuation">;</span>
+    <span class="token punctuation">}</span>
+<span class="token punctuation">}</span><span class="token punctuation">;</span></code></pre>
+<h2 id="many">Many</h2><p>Similar to repeat its behavior is identical to * (Kleene Star ) in Regular Expressions, so it matches none or more times what the parser matches</p>
+<pre class="code-segment"><code class="language-cpp" data-language="cpp"><span class="token keyword">template</span><span class="token operator">&lt;</span><span class="token keyword">typename</span> <span class="token class-name">Parser</span><span class="token operator">></span>
+<span class="token keyword">struct</span> <span class="token class-name">Many</span> <span class="token punctuation">{</span>
+    <span class="token keyword">using</span> is_parser_type <span class="token operator">=</span> std<span class="token operator">::</span>true_type<span class="token punctuation">;</span>
+    <span class="token keyword">using</span> return_type <span class="token operator">=</span> <span class="token keyword">typename</span> <span class="token class-name">std</span><span class="token operator">::</span>vector<span class="token operator">&lt;</span><span class="token keyword">typename</span> <span class="token class-name">Parser</span><span class="token operator">::</span>return_type<span class="token operator">></span><span class="token punctuation">;</span>
+    <span class="token keyword">using</span> temp_result_type <span class="token operator">=</span> <span class="token keyword">typename</span> <span class="token class-name">Parser</span><span class="token operator">::</span>return_type<span class="token punctuation">;</span>
+
+
+    Parser <span class="token keyword">const</span> p<span class="token punctuation">;</span>
+    <span class="token function">Many</span><span class="token punctuation">(</span>Parser <span class="token keyword">const</span><span class="token operator">&amp;</span> p_<span class="token punctuation">)</span> <span class="token operator">:</span><span class="token function">p</span><span class="token punctuation">(</span>p_<span class="token punctuation">)</span> <span class="token punctuation">{</span><span class="token punctuation">}</span><span class="token punctuation">;</span>
+    <span class="token comment">//CAN REPEAT 0 Times</span>
+    <span class="token keyword">template</span><span class="token operator">&lt;</span><span class="token keyword">typename</span> <span class="token class-name">Iterator</span><span class="token operator">></span>
+    <span class="token keyword">bool</span> <span class="token keyword">operator</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">(</span>Iterator<span class="token operator">&amp;</span> it<span class="token punctuation">,</span> Iterator end<span class="token punctuation">,</span> return_type<span class="token operator">*</span> result<span class="token punctuation">)</span> <span class="token keyword">const</span> <span class="token punctuation">{</span>
+
+        Iterator backtrack <span class="token operator">=</span> it<span class="token punctuation">;</span>
+        size_t cnt <span class="token operator">=</span> <span class="token number">0</span><span class="token punctuation">;</span>
+
+        temp_result_type tmpres<span class="token punctuation">;</span>
+
+        <span class="token keyword">while</span> <span class="token punctuation">(</span><span class="token function">p</span><span class="token punctuation">(</span>it<span class="token punctuation">,</span> end<span class="token punctuation">,</span> <span class="token operator">&amp;</span>tmpres<span class="token punctuation">)</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+            result<span class="token operator">-></span><span class="token function">push_back</span><span class="token punctuation">(</span>tmpres<span class="token punctuation">)</span><span class="token punctuation">;</span>
+            backtrack <span class="token operator">=</span> it<span class="token punctuation">;</span>
+            <span class="token operator">++</span>cnt<span class="token punctuation">;</span>
+        <span class="token punctuation">}</span>
+
+        <span class="token keyword">return</span> <span class="token boolean">true</span><span class="token punctuation">;</span>
+    <span class="token punctuation">}</span>
+<span class="token punctuation">}</span><span class="token punctuation">;</span></code></pre>
+<h2 id="optional">Optional</h2><p>Match a single time or none at all, usually people implement an Identity parser that would always succeed, and Optional is just the combination of the passed parser the Identity. </p>
+<h2 id="any">Any</h2><p>Constructed from multiple parsers it matches at least one of them, this may be one of the more complex pieces of this project because in strictly typed languages its harder to have heterogeneous data stored. One issue that was more complex to solve for this combinator was the use of std::variant because having <code>std::variant<int,int></code> creates a different type than <code>std::variant<int></code> and that’s by standart. What i managed to create was unique_variant that takes template types and reduces those types to a unique list of types. For example <code>unique_variant<int,int,double,int></code> creates the type <code>std::variant<int,double></code>.</p>
+<p>As you can see some of the parsers store the iterator state for backtracking in case it fails, this is just to simplify construction of complex parsers.</p>
+<h1 id="usage-and-construction">Usage and Construction<a href="#usage-and-construction">
+				<svg width="32" height="32" version="1.1" viewBox="0 0 8.4667 8.4667" xmlns="http://www.w3.org/2000/svg">
+					<g transform="translate(0 -288.53)" fill="none"  stroke-linecap="round" stroke-linejoin="round">
+					<path d="m2.9277 291.21s1.9513-1.4763 2.9923-2.1296c0.71619-0.44948 2.4456 1.1412 1.8323 1.7128-1.0188 0.94949-2.7281 2.393-3.6841 3.1919-0.42527 0.3554-1.0085-0.0202-1.0085-0.0202-0.34667-0.20565-0.53525-0.38994-0.67523-0.74058" stroke-width=".65774"/>
+					<path d="m3.3906 295.24s-0.1942 0.40002-0.5869 1.1576c-0.26611 0.51336-2.1009 0.33429-1.991-0.24053 0.18268-0.9549 0.60053-2.9608 0.80778-3.8003 0.092199-0.37346 0.76722-0.33226 0.76722-0.33226 0.26803 3.7e-4 0.77273 0.25652 0.98514 0.4206" stroke-width=".5"/>
+					</g>
+				</svg> 
+			</a>
+		</h1><p>There are a couple of other interesting combinators that will get described later on,but first lets talk about how a parser is constructed. Because each of those combinators works as any other parser that means they behave just like higher order functions. Really simple example would be a having list of numbers, a mix of integers and doubles. If we had a parser called <code>Integer()</code> and another one called Double() making a parser that reads all the values in a string like this:</p>
+<blockquote>
+<p>4 4.2 1 16 2.6 15.123 4 14</p>
+</blockquote>
+<p>Becomes as easy as using this structure <code>Many(Any(Integer(),Double()))</code> and this statement has all of its complexities hidden inside the functors, so our main focus becomes recreating the grammar of what we want to parse. For simple tasks a statement like this might be more readable than regular expressions syntax, but of course it comes to personal preference and preformance.
+Most of the libraries opt into making a lot of operator overloads, but i felt that the resulting code looks like hot mess. This doesn’t mean i strayed completely from any operator overloads, but they are mainly to provide ease of use and readability.
+For example the usage of operator <code>&&</code> and operator <code>||</code> they are for constructing a sequence or a choice of parsers.</p>
+<p>When we want to sequentially use two parsers and they capture the same or similar type you chain them up like this</p>
+<blockquote>
+<p>parser1 &amp;&amp; parser2</p>
+</blockquote>
+<p>When we want a choice of parsers and they capture the same or simillar type you chain them up like this</p>
+<blockquote>
+<p>parser1 || parser2</p>
+</blockquote>
+<p>This type of usage allows us to reduce the clutter of words that would happen if we used the conventional class calls. All overloaded operators are outside of classes ( global ) and return the appropriate Combinator so they act like a wrapper and are also chainable.</p>
+<h1 id="execution-of-a-parser">Execution of a parser<a href="#execution-of-a-parser">
+				<svg width="32" height="32" version="1.1" viewBox="0 0 8.4667 8.4667" xmlns="http://www.w3.org/2000/svg">
+					<g transform="translate(0 -288.53)" fill="none"  stroke-linecap="round" stroke-linejoin="round">
+					<path d="m2.9277 291.21s1.9513-1.4763 2.9923-2.1296c0.71619-0.44948 2.4456 1.1412 1.8323 1.7128-1.0188 0.94949-2.7281 2.393-3.6841 3.1919-0.42527 0.3554-1.0085-0.0202-1.0085-0.0202-0.34667-0.20565-0.53525-0.38994-0.67523-0.74058" stroke-width=".65774"/>
+					<path d="m3.3906 295.24s-0.1942 0.40002-0.5869 1.1576c-0.26611 0.51336-2.1009 0.33429-1.991-0.24053 0.18268-0.9549 0.60053-2.9608 0.80778-3.8003 0.092199-0.37346 0.76722-0.33226 0.76722-0.33226 0.26803 3.7e-4 0.77273 0.25652 0.98514 0.4206" stroke-width=".5"/>
+					</g>
+				</svg> 
+			</a>
+		</h1><p>Each parser has a overloaded <code>operator()</code> taking a starting iterator, a end iterator and has an output parameter of the appropriate type, and returns a boolean value. We use that return value with the new fold syntax construct statements similar to this one:</p>
+<blockquote>
+<p>(parsers(it, end, &amp;result_item) &amp;&amp; ...)</p>
+</blockquote>
+<p>This unpacks all the parsers and executes them in order of calling ( something guaranteed by the C++17 standard ). This way if a parser in the chain fails, execution stops and we end up with an iterator at the first location it failed parsing. In the C++ language this is called short-circuiting and works on boolean values and implicitly convertible statements to boolean. This is not the only reason i chose this type of implementation, but because in earlier experiments i came to the conclusion that its harder to work with all the different return values and combining them.Using fold expressions also reduces our need to do recursive SFINAE template tricks.</p>
+<h1 id="left-recursion-in-grammars">Left recursion in grammars<a href="#left-recursion-in-grammars">
+				<svg width="32" height="32" version="1.1" viewBox="0 0 8.4667 8.4667" xmlns="http://www.w3.org/2000/svg">
+					<g transform="translate(0 -288.53)" fill="none"  stroke-linecap="round" stroke-linejoin="round">
+					<path d="m2.9277 291.21s1.9513-1.4763 2.9923-2.1296c0.71619-0.44948 2.4456 1.1412 1.8323 1.7128-1.0188 0.94949-2.7281 2.393-3.6841 3.1919-0.42527 0.3554-1.0085-0.0202-1.0085-0.0202-0.34667-0.20565-0.53525-0.38994-0.67523-0.74058" stroke-width=".65774"/>
+					<path d="m3.3906 295.24s-0.1942 0.40002-0.5869 1.1576c-0.26611 0.51336-2.1009 0.33429-1.991-0.24053 0.18268-0.9549 0.60053-2.9608 0.80778-3.8003 0.092199-0.37346 0.76722-0.33226 0.76722-0.33226 0.26803 3.7e-4 0.77273 0.25652 0.98514 0.4206" stroke-width=".5"/>
+					</g>
+				</svg> 
+			</a>
+		</h1><p>In the world of parser combinators you could try and use conventional methods of handling left recursion, but that would entail making a construct so we dont end up with an endless loop. Luckily there is another combinator that we can use so we can avoid the recursive nature of a grammar. Most algorithms do some sort of pruning or rewriting to eliminate recursion. The combinator i mentioned earlier is called SepBy().
+SepBy matches one parser separated by another usually called delimiter, using the example we made earlier with parsing numbers, if we have a comma separated list of values.</p>
+<blockquote>
+<p>1,2,3,4,54,6,7,8,99</p>
+</blockquote>
+<p>The task of parsing this would become <code>SepBy(Integer(),Comma())</code> but the real power of this combinator shows up when we have to parse something like a simple mathematical expression.</p>
+<blockquote>
+<p>1+5*6+8/2</p>
+</blockquote>
+<p>This doesn’t mean you cant have nested rules inside the grammar, for example a rule referencing itself, thats why there is a Reference combinator that pushes a reference to a parser and also a generic Rule container that can hold any parser type. Those enable you to create almost anything you desire without rethinking/rewriting the grammar rules that are more intuitive to write/read.</p>
+<h1 id="handling-associativity-and-precedence">Handling associativity and precedence<a href="#handling-associativity-and-precedence">
+				<svg width="32" height="32" version="1.1" viewBox="0 0 8.4667 8.4667" xmlns="http://www.w3.org/2000/svg">
+					<g transform="translate(0 -288.53)" fill="none"  stroke-linecap="round" stroke-linejoin="round">
+					<path d="m2.9277 291.21s1.9513-1.4763 2.9923-2.1296c0.71619-0.44948 2.4456 1.1412 1.8323 1.7128-1.0188 0.94949-2.7281 2.393-3.6841 3.1919-0.42527 0.3554-1.0085-0.0202-1.0085-0.0202-0.34667-0.20565-0.53525-0.38994-0.67523-0.74058" stroke-width=".65774"/>
+					<path d="m3.3906 295.24s-0.1942 0.40002-0.5869 1.1576c-0.26611 0.51336-2.1009 0.33429-1.991-0.24053 0.18268-0.9549 0.60053-2.9608 0.80778-3.8003 0.092199-0.37346 0.76722-0.33226 0.76722-0.33226 0.26803 3.7e-4 0.77273 0.25652 0.98514 0.4206" stroke-width=".5"/>
+					</g>
+				</svg> 
+			</a>
+		</h1><p>Associativity and precedence are one of the more complex parts that you have to create when handling a grammar. Most algorithms get precedence as a number and after creating the parse graph it prunes all the nodes that dont satisfy the precedence, but in a combinator parser something like that is harder to do. This is why i introduce Compound parsers, they are not really a full parser meaning you cant call them directly to recognize input. As an input they get one or more other parsers, that can also be compound but allow construction of nested parsing functors.
+We introduce 4 compound parsers, LeftBinOper,RightBinOper that handle respectively left and right associative operators and Prefix,Postfix that handle the same thing as their name, prefix and postfix operators. There can be abstracted more Compound parsers N-ary operators but i felt like that was out of the scope of the library at the moment.
+Combining compound parsers is as easy as making a nested function call but to increase readability we introduce an overload of operator &gt;&gt;=. This operator translates from <code>p1 >>= p2</code> to just calling <code>p1(p2)</code>. All we need and the end of a operator calls like this is just a non-compound parser to make it callable as a recognizer. Why does this increase readability ?</p>
+<p>Well this way we model the precedence order based on our compound call order.
+Usually the precedence of operators in most languages goes like this</p>
+<blockquote>
+<p>Left Associative → Right Associative → Prefix→ Postfix</p>
+</blockquote>
+<p>This way when we resolve the functions it goes and parses from left to right:</p>
+<blockquote>
+<p>Prefix → Postfix → Right Associative → Left Associative</p>
+</blockquote>
+<h1 id="examples">Examples<a href="#examples">
+				<svg width="32" height="32" version="1.1" viewBox="0 0 8.4667 8.4667" xmlns="http://www.w3.org/2000/svg">
+					<g transform="translate(0 -288.53)" fill="none"  stroke-linecap="round" stroke-linejoin="round">
+					<path d="m2.9277 291.21s1.9513-1.4763 2.9923-2.1296c0.71619-0.44948 2.4456 1.1412 1.8323 1.7128-1.0188 0.94949-2.7281 2.393-3.6841 3.1919-0.42527 0.3554-1.0085-0.0202-1.0085-0.0202-0.34667-0.20565-0.53525-0.38994-0.67523-0.74058" stroke-width=".65774"/>
+					<path d="m3.3906 295.24s-0.1942 0.40002-0.5869 1.1576c-0.26611 0.51336-2.1009 0.33429-1.991-0.24053 0.18268-0.9549 0.60053-2.9608 0.80778-3.8003 0.092199-0.37346 0.76722-0.33226 0.76722-0.33226 0.26803 3.7e-4 0.77273 0.25652 0.98514 0.4206" stroke-width=".5"/>
+					</g>
+				</svg> 
+			</a>
+		</h1><p>Lets show some simplistic examples of how a parsing setup works and</p>
+<h2 id="example-math-parser">Example Math Parser</h2><p>Its easy to see that all the operators with same precedence are grouped with <code>||</code> operator on each level and then chained. Because of the flexibility of parameters ( mainly most of them can be made constexpr ) means we can increase redability even more.</p>
+<pre class="code-segment"><code class="language-cpp" data-language="cpp"><span class="token keyword">constexpr</span> <span class="token keyword">auto</span> single_sum <span class="token operator">=</span> <span class="token punctuation">[</span><span class="token punctuation">]</span><span class="token punctuation">(</span><span class="token keyword">auto</span><span class="token punctuation">)</span><span class="token operator">-></span>std<span class="token operator">::</span>function<span class="token operator">&lt;</span><span class="token keyword">int</span><span class="token punctuation">(</span><span class="token keyword">int</span><span class="token punctuation">,</span> <span class="token keyword">int</span><span class="token punctuation">)</span><span class="token operator">></span> <span class="token punctuation">{</span> <span class="token keyword">return</span> <span class="token punctuation">[</span><span class="token punctuation">]</span><span class="token punctuation">(</span><span class="token keyword">int</span> a<span class="token punctuation">,</span> <span class="token keyword">int</span> b<span class="token punctuation">)</span> <span class="token punctuation">{</span> <span class="token keyword">return</span> a <span class="token operator">+</span> b<span class="token punctuation">;</span> <span class="token punctuation">}</span><span class="token punctuation">;</span> <span class="token punctuation">}</span><span class="token punctuation">;</span>
+    <span class="token keyword">constexpr</span> <span class="token keyword">auto</span> single_sub <span class="token operator">=</span> <span class="token punctuation">[</span><span class="token punctuation">]</span><span class="token punctuation">(</span><span class="token keyword">auto</span><span class="token punctuation">)</span><span class="token operator">-></span>std<span class="token operator">::</span>function<span class="token operator">&lt;</span><span class="token keyword">int</span><span class="token punctuation">(</span><span class="token keyword">int</span><span class="token punctuation">,</span> <span class="token keyword">int</span><span class="token punctuation">)</span><span class="token operator">></span> <span class="token punctuation">{</span> <span class="token keyword">return</span> <span class="token punctuation">[</span><span class="token punctuation">]</span><span class="token punctuation">(</span><span class="token keyword">int</span> a<span class="token punctuation">,</span> <span class="token keyword">int</span> b<span class="token punctuation">)</span> <span class="token punctuation">{</span> <span class="token keyword">return</span> a <span class="token operator">-</span> b<span class="token punctuation">;</span> <span class="token punctuation">}</span><span class="token punctuation">;</span> <span class="token punctuation">}</span><span class="token punctuation">;</span>
+    <span class="token keyword">constexpr</span> <span class="token keyword">auto</span> single_mul <span class="token operator">=</span> <span class="token punctuation">[</span><span class="token punctuation">]</span><span class="token punctuation">(</span><span class="token keyword">auto</span><span class="token punctuation">)</span><span class="token operator">-></span>std<span class="token operator">::</span>function<span class="token operator">&lt;</span><span class="token keyword">int</span><span class="token punctuation">(</span><span class="token keyword">int</span><span class="token punctuation">,</span> <span class="token keyword">int</span><span class="token punctuation">)</span><span class="token operator">></span> <span class="token punctuation">{</span> <span class="token keyword">return</span> <span class="token punctuation">[</span><span class="token punctuation">]</span><span class="token punctuation">(</span><span class="token keyword">int</span> a<span class="token punctuation">,</span> <span class="token keyword">int</span> b<span class="token punctuation">)</span> <span class="token punctuation">{</span> <span class="token keyword">return</span> a <span class="token operator">*</span> b<span class="token punctuation">;</span> <span class="token punctuation">}</span><span class="token punctuation">;</span> <span class="token punctuation">}</span><span class="token punctuation">;</span>
+    <span class="token keyword">constexpr</span> <span class="token keyword">auto</span> single_div <span class="token operator">=</span> <span class="token punctuation">[</span><span class="token punctuation">]</span><span class="token punctuation">(</span><span class="token keyword">auto</span><span class="token punctuation">)</span><span class="token operator">-></span>std<span class="token operator">::</span>function<span class="token operator">&lt;</span><span class="token keyword">int</span><span class="token punctuation">(</span><span class="token keyword">int</span><span class="token punctuation">,</span> <span class="token keyword">int</span><span class="token punctuation">)</span><span class="token operator">></span> <span class="token punctuation">{</span> <span class="token keyword">return</span> <span class="token punctuation">[</span><span class="token punctuation">]</span><span class="token punctuation">(</span><span class="token keyword">int</span> a<span class="token punctuation">,</span> <span class="token keyword">int</span> b<span class="token punctuation">)</span> <span class="token punctuation">{</span> <span class="token keyword">return</span> a <span class="token operator">/</span> b<span class="token punctuation">;</span> <span class="token punctuation">}</span><span class="token punctuation">;</span> <span class="token punctuation">}</span><span class="token punctuation">;</span>
+    <span class="token keyword">constexpr</span> <span class="token keyword">auto</span> prefix_double <span class="token operator">=</span> <span class="token punctuation">[</span><span class="token punctuation">]</span><span class="token punctuation">(</span><span class="token keyword">auto</span><span class="token punctuation">)</span><span class="token operator">-></span>std<span class="token operator">::</span>function<span class="token operator">&lt;</span><span class="token keyword">int</span><span class="token punctuation">(</span><span class="token keyword">int</span><span class="token punctuation">)</span><span class="token operator">></span> <span class="token punctuation">{</span> <span class="token keyword">return</span> <span class="token punctuation">[</span><span class="token punctuation">]</span><span class="token punctuation">(</span><span class="token keyword">int</span> a<span class="token punctuation">)</span> <span class="token punctuation">{</span> <span class="token keyword">return</span> a <span class="token operator">*</span> a<span class="token punctuation">;</span> <span class="token punctuation">}</span><span class="token punctuation">;</span> <span class="token punctuation">}</span><span class="token punctuation">;</span>
+    <span class="token keyword">constexpr</span> <span class="token keyword">auto</span> prefix_neg <span class="token operator">=</span> <span class="token punctuation">[</span><span class="token punctuation">]</span><span class="token punctuation">(</span><span class="token keyword">auto</span><span class="token punctuation">)</span><span class="token operator">-></span>std<span class="token operator">::</span>function<span class="token operator">&lt;</span><span class="token keyword">int</span><span class="token punctuation">(</span><span class="token keyword">int</span><span class="token punctuation">)</span><span class="token operator">></span> <span class="token punctuation">{</span> <span class="token keyword">return</span> <span class="token punctuation">[</span><span class="token punctuation">]</span><span class="token punctuation">(</span><span class="token keyword">int</span> a<span class="token punctuation">)</span> <span class="token punctuation">{</span> <span class="token keyword">return</span> <span class="token operator">-</span>a<span class="token punctuation">;</span> <span class="token punctuation">}</span><span class="token punctuation">;</span> <span class="token punctuation">}</span><span class="token punctuation">;</span>
+
+
+
+    <span class="token keyword">auto</span> mathParser <span class="token operator">=</span>
+        <span class="token function">LeftBinOper</span><span class="token punctuation">(</span><span class="token string">'+'</span>_symb <span class="token operator">%</span> single_sum <span class="token operator">||</span> <span class="token string">'-'</span>_symb <span class="token operator">%</span> single_sub<span class="token punctuation">)</span> <span class="token operator">>>=</span>
+        <span class="token function">LeftBinOper</span><span class="token punctuation">(</span><span class="token string">'*'</span>_symb <span class="token operator">%</span> single_mul <span class="token operator">||</span> <span class="token string">'/'</span>_symb <span class="token operator">%</span> single_div<span class="token punctuation">)</span> <span class="token operator">>>=</span>
+        <span class="token function">Prefix</span><span class="token punctuation">(</span><span class="token string">'-'</span>_symb <span class="token operator">%</span> prefix_neg <span class="token operator">||</span> <span class="token string">'!'</span>_symb <span class="token operator">%</span> prefix_double<span class="token punctuation">)</span> <span class="token operator">>>=</span>
+        <span class="token function">ParseNumber</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+
+
+    std<span class="token operator">::</span>string test_expression <span class="token operator">=</span> <span class="token string">"3*5*2+1*2+1+1+1+2+3+3"</span><span class="token punctuation">;</span>
+
+    ctxStringIter start <span class="token operator">=</span> test_expression<span class="token punctuation">.</span><span class="token function">begin</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+    ctxStringIter end <span class="token operator">=</span> test_expression<span class="token punctuation">.</span><span class="token function">end</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+    <span class="token keyword">decltype</span><span class="token punctuation">(</span>mathParser<span class="token punctuation">)</span><span class="token operator">::</span>return_type final_result<span class="token punctuation">;</span>
+    <span class="token keyword">bool</span> hasParsed <span class="token operator">=</span> <span class="token function">mathParser</span><span class="token punctuation">(</span>start<span class="token punctuation">,</span> end<span class="token punctuation">,</span> <span class="token operator">&amp;</span>final_result<span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+    <span class="token keyword">if</span> <span class="token punctuation">(</span>hasParsed<span class="token punctuation">)</span> <span class="token punctuation">{</span>
+        std<span class="token operator">::</span>cout <span class="token operator">&lt;&lt;</span> <span class="token string">"Parsed Successfully"</span> <span class="token operator">&lt;&lt;</span> std<span class="token operator">::</span>endl<span class="token punctuation">;</span>
+        std<span class="token operator">::</span>cout <span class="token operator">&lt;&lt;</span> <span class="token string">"Result:= "</span> <span class="token operator">&lt;&lt;</span> final_result <span class="token operator">&lt;&lt;</span> std<span class="token operator">::</span>endl<span class="token punctuation">;</span>
+        std<span class="token operator">::</span>cout <span class="token operator">&lt;&lt;</span> <span class="token string">"(line: "</span> <span class="token operator">&lt;&lt;</span> start<span class="token punctuation">.</span><span class="token function">getCurrentLine</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token operator">&lt;&lt;</span> <span class="token string">" col: "</span> <span class="token operator">&lt;&lt;</span> start<span class="token punctuation">.</span><span class="token function">getCurrentCol</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token operator">&lt;&lt;</span> std<span class="token operator">::</span>endl<span class="token punctuation">;</span>
+    <span class="token punctuation">}</span></code></pre>
+<h2 id="example-json-parser">Example JSON Parser</h2><p>I don’t claim that this is an efficient implementation nor any speed improvements over existing solutions, its just an exploration on parsing and features of the new standards in C++.</p>
+<pre class="code-segment"><code class="language-cpp" data-language="cpp"><span class="token comment">//Transformations    </span>
+    <span class="token keyword">constexpr</span> <span class="token keyword">auto</span> to_string <span class="token operator">=</span> <span class="token punctuation">[</span><span class="token punctuation">]</span><span class="token punctuation">(</span><span class="token keyword">auto</span> v<span class="token punctuation">)</span> <span class="token punctuation">{</span> <span class="token keyword">return</span> std<span class="token operator">::</span><span class="token function">string</span><span class="token punctuation">(</span><span class="token number">1</span><span class="token punctuation">,</span> v<span class="token punctuation">)</span><span class="token punctuation">;</span> <span class="token punctuation">}</span><span class="token punctuation">;</span>
+    <span class="token keyword">constexpr</span> <span class="token keyword">auto</span> vec_to_string <span class="token operator">=</span> <span class="token punctuation">[</span><span class="token punctuation">]</span><span class="token punctuation">(</span><span class="token keyword">auto</span> v<span class="token punctuation">)</span> <span class="token punctuation">{</span>
+        <span class="token keyword">return</span> std<span class="token operator">::</span><span class="token function">accumulate</span><span class="token punctuation">(</span>v<span class="token punctuation">.</span><span class="token function">begin</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">,</span> v<span class="token punctuation">.</span><span class="token function">end</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">,</span> std<span class="token operator">::</span>string<span class="token punctuation">{</span><span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token punctuation">}</span><span class="token punctuation">;</span>
+
+    <span class="token comment">//Grammar</span>
+    <span class="token keyword">constexpr</span> <span class="token keyword">auto</span> ws <span class="token operator">=</span> monadic<span class="token operator">::</span><span class="token function">Many</span><span class="token punctuation">(</span>symbs<span class="token operator">&lt;</span><span class="token string">'\n'</span><span class="token punctuation">,</span> <span class="token string">'\t'</span><span class="token punctuation">,</span> <span class="token string">'\r'</span><span class="token punctuation">,</span><span class="token string">' '</span><span class="token operator">></span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token operator">%</span> to_string<span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token keyword">constexpr</span> <span class="token keyword">auto</span> str_wrap <span class="token operator">=</span> <span class="token function">Wrapper</span><span class="token punctuation">(</span><span class="token string">'"'</span>_symb<span class="token punctuation">,</span> <span class="token string">'"'</span>_symb<span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token keyword">constexpr</span> <span class="token keyword">auto</span> obj_wrap <span class="token operator">=</span> <span class="token function">Wrapper</span><span class="token punctuation">(</span><span class="token string">'{'</span>_symb<span class="token punctuation">,</span> <span class="token string">'}'</span>_symb<span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token keyword">constexpr</span> <span class="token keyword">auto</span> array_wrap <span class="token operator">=</span> <span class="token function">Wrapper</span><span class="token punctuation">(</span><span class="token string">'['</span>_symb<span class="token punctuation">,</span> <span class="token string">']'</span>_symb<span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+    <span class="token comment">//Handle Scientific notation</span>
+    <span class="token keyword">constexpr</span> <span class="token keyword">auto</span> json_int <span class="token operator">=</span> <span class="token function">AcceptString</span><span class="token punctuation">(</span><span class="token string">'0'</span>_symb <span class="token operator">%</span> to_string <span class="token operator">||</span> <span class="token string">"1..9"</span>_range <span class="token operator">%</span> to_string <span class="token operator">&amp;&amp;</span> monadic<span class="token operator">::</span><span class="token function">Many</span><span class="token punctuation">(</span><span class="token function">AcceptString</span><span class="token punctuation">(</span><span class="token string">"0..9"</span>_range<span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token keyword">constexpr</span> <span class="token keyword">auto</span> json_exp <span class="token operator">=</span> symbs<span class="token operator">&lt;</span><span class="token string">'E'</span><span class="token punctuation">,</span> <span class="token string">'e'</span><span class="token operator">></span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token operator">%</span> to_string <span class="token operator">&amp;&amp;</span> <span class="token function">Optional</span><span class="token punctuation">(</span>symbs<span class="token operator">&lt;</span><span class="token string">'+'</span><span class="token punctuation">,</span> <span class="token string">'-'</span><span class="token operator">></span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token operator">%</span> to_string<span class="token punctuation">)</span> <span class="token operator">&amp;&amp;</span> json_int<span class="token punctuation">;</span>
+    <span class="token keyword">constexpr</span> <span class="token keyword">auto</span> float_part <span class="token operator">=</span> <span class="token function">AcceptString</span><span class="token punctuation">(</span><span class="token string">'.'</span>_symb <span class="token operator">%</span> to_string <span class="token operator">&amp;&amp;</span> monadic<span class="token operator">::</span><span class="token function">Many</span><span class="token punctuation">(</span><span class="token function">AcceptString</span><span class="token punctuation">(</span><span class="token string">"0..9"</span>_range<span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+    <span class="token keyword">constexpr</span> <span class="token keyword">auto</span> json_number <span class="token operator">=</span> <span class="token function">Optional</span><span class="token punctuation">(</span><span class="token string">'-'</span>_symb <span class="token operator">%</span> to_string<span class="token punctuation">)</span> <span class="token operator">&amp;&amp;</span> json_int <span class="token operator">&amp;&amp;</span> <span class="token function">Optional</span><span class="token punctuation">(</span>float_part<span class="token punctuation">)</span> <span class="token operator">&amp;&amp;</span> <span class="token function">Optional</span><span class="token punctuation">(</span>json_exp<span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+    <span class="token keyword">constexpr</span> <span class="token keyword">auto</span> json_string <span class="token operator">=</span> <span class="token function">str_wrap</span><span class="token punctuation">(</span>monadic<span class="token operator">::</span><span class="token function">Repeat</span><span class="token punctuation">(</span><span class="token function">AcceptString</span><span class="token punctuation">(</span><span class="token string">"a..z"</span>_range <span class="token operator">||</span> <span class="token string">"A..Z"</span>_range<span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+    <span class="token keyword">constexpr</span> <span class="token keyword">auto</span> json_obj <span class="token operator">=</span> <span class="token punctuation">[</span><span class="token operator">&amp;</span><span class="token punctuation">]</span><span class="token punctuation">(</span><span class="token keyword">const</span> <span class="token keyword">auto</span> json_value<span class="token punctuation">)</span> <span class="token punctuation">{</span>
+        <span class="token keyword">return</span> <span class="token function">obj_wrap</span><span class="token punctuation">(</span><span class="token function">SepBy</span><span class="token punctuation">(</span>json_value<span class="token punctuation">,</span> <span class="token string">','</span>_symb<span class="token punctuation">)</span> <span class="token operator">%</span> vec_to_string <span class="token operator">||</span> ws<span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token punctuation">}</span><span class="token punctuation">;</span>
+    <span class="token keyword">constexpr</span> <span class="token keyword">auto</span> json_arr <span class="token operator">=</span> <span class="token punctuation">[</span><span class="token operator">&amp;</span><span class="token punctuation">]</span><span class="token punctuation">(</span><span class="token keyword">const</span> <span class="token keyword">auto</span> json_value<span class="token punctuation">)</span> <span class="token punctuation">{</span>
+        <span class="token keyword">return</span> <span class="token function">array_wrap</span><span class="token punctuation">(</span><span class="token function">SepBy</span><span class="token punctuation">(</span>json_value<span class="token punctuation">,</span> <span class="token string">','</span>_symb<span class="token punctuation">)</span> <span class="token operator">%</span> vec_to_string <span class="token operator">||</span> ws<span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token punctuation">}</span><span class="token punctuation">;</span>
+
+    Rule<span class="token operator">&lt;</span>ctxStringIter<span class="token punctuation">,</span> std<span class="token operator">::</span>string<span class="token operator">></span> json_value <span class="token operator">=</span>
+        json_number <span class="token operator">||</span>
+        json_string <span class="token operator">||</span>
+        <span class="token function">json_arr</span><span class="token punctuation">(</span><span class="token function">Reference</span><span class="token punctuation">(</span><span class="token operator">&amp;</span>json_value<span class="token punctuation">)</span><span class="token punctuation">)</span> <span class="token operator">||</span>
+        <span class="token function">json_obj</span><span class="token punctuation">(</span>json_string <span class="token operator">&amp;&amp;</span> <span class="token function">AcceptString</span><span class="token punctuation">(</span><span class="token string">':'</span>_symb<span class="token punctuation">)</span> <span class="token operator">&amp;&amp;</span> <span class="token function">AcceptString</span><span class="token punctuation">(</span><span class="token function">Reference</span><span class="token punctuation">(</span><span class="token operator">&amp;</span>json_value<span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">)</span> <span class="token operator">||</span>
+        <span class="token function">ParseLit</span><span class="token punctuation">(</span><span class="token string">"true"</span><span class="token punctuation">)</span> <span class="token operator">||</span>
+        <span class="token function">ParseLit</span><span class="token punctuation">(</span><span class="token string">"false"</span><span class="token punctuation">)</span> <span class="token operator">||</span>
+        <span class="token function">ParseLit</span><span class="token punctuation">(</span><span class="token string">"null"</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+
+    std<span class="token operator">::</span>string test_string <span class="token operator">=</span> <span class="token string">"[1,-3.45,[],{},5,6,\"asd\",{\"Test\":\"Arr\"},{\"Tester\":[1,2,34,3,5,6]},{\n}]"</span><span class="token punctuation">;</span>
+
+    ctxStringIter start <span class="token operator">=</span> test_string<span class="token punctuation">.</span><span class="token function">begin</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+    ctxStringIter end <span class="token operator">=</span> test_string<span class="token punctuation">.</span><span class="token function">end</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+    <span class="token keyword">decltype</span><span class="token punctuation">(</span>json_value<span class="token punctuation">)</span><span class="token operator">::</span>return_type var_test<span class="token punctuation">;</span>
+    <span class="token keyword">bool</span> hasParsed <span class="token operator">=</span> <span class="token function">json_value</span><span class="token punctuation">(</span>start<span class="token punctuation">,</span> end<span class="token punctuation">,</span> <span class="token operator">&amp;</span>var_test<span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+    <span class="token keyword">if</span> <span class="token punctuation">(</span>hasParsed<span class="token punctuation">)</span> <span class="token punctuation">{</span>
+        std<span class="token operator">::</span>cout <span class="token operator">&lt;&lt;</span> <span class="token string">"Parsed Successfully"</span> <span class="token operator">&lt;&lt;</span> std<span class="token operator">::</span>endl<span class="token punctuation">;</span>
+        std<span class="token operator">::</span>cout <span class="token operator">&lt;&lt;</span> <span class="token string">"Result:= "</span> <span class="token operator">&lt;&lt;</span> var_test <span class="token operator">&lt;&lt;</span> std<span class="token operator">::</span>endl<span class="token punctuation">;</span>
+        std<span class="token operator">::</span>cout <span class="token operator">&lt;&lt;</span> <span class="token string">"(line: "</span> <span class="token operator">&lt;&lt;</span> start<span class="token punctuation">.</span><span class="token function">getCurrentLine</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token operator">&lt;&lt;</span> <span class="token string">" col: "</span> <span class="token operator">&lt;&lt;</span> start<span class="token punctuation">.</span><span class="token function">getCurrentCol</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token operator">&lt;&lt;</span> std<span class="token operator">::</span>endl<span class="token punctuation">;</span>
+    <span class="token punctuation">}</span></code></pre>
+
+    </div>
+    <aside class='box'>
+        <nav class="toc" offset="80" aria-label="local navigation" >
+            <h3>Contents</h3>
+            <ul>
+                <li class=""><a href="#alternatives">Alternatives
+				
+					
+					
+					
+					
+				 
+			
+		</a></li>
+                <li class=""><a href="#on-an-adventure">On an adventure
+				
+					
+					
+					
+					
+				 
+			
+		</a></li>
+                <li class=""><a href="#usage-and-construction">Usage and Construction
+				
+					
+					
+					
+					
+				 
+			
+		</a></li>
+                <li class=""><a href="#execution-of-a-parser">Execution of a parser
+				
+					
+					
+					
+					
+				 
+			
+		</a></li>
+                <li class=""><a href="#left-recursion-in-grammars">Left recursion in grammars
+				
+					
+					
+					
+					
+				 
+			
+		</a></li>
+                <li class=""><a href="#handling-associativity-and-precedence">Handling associativity and precedence
+				
+					
+					
+					
+					
+				 
+			
+		</a></li>
+                <li class=""><a href="#examples">Examples
+				
+					
+					
+					
+					
+				 
+			
+		</a></li>
+            </ul>
+        </nav>
+    </aside>
+</main>
+</body>
+</html>
