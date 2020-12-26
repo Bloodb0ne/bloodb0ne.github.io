@@ -260,7 +260,7 @@ A sequence of 36 characters that map the <code>[0..9,A..Z]</code> to another seq
     <span class='clrd-f1'>AXL</span> (<span class='clrd-f2'>PROB</span>) <span class='clrd-f3'>NUMS</span>, <span class='clrd-f4'>DIRS</span>,<span class='clrd-f3'>LETTERS</span>,Q(<span class='clrd-f4'>XLIT</span>) <span class='clrd-f1'>GOTO</span> 
 </div>
 
-<p>To add more versatility to the transformations this instruction lets us describe a neighborhood that should match for the transformation to occur and then we also test the probability q of the transformation.</p>
+<p>To add more versatility to the transformations this instruction lets us describe a neighborhood that should match for the transformation to occur and then we also test the probability q of the transformation.So for every pixel we check the neighbourhood and if it matches the amount described by <code>NUMS</code> we try to do the replacement.</p>
 <blockquote>
 <p><strong>Example:</strong> <code>AXL (1,1)234,RLWE,ABCD,5(XXX)</code>  Every time we run this instruction, for every value that has exactly 2,3 or 4 neighbors to the Right, Left, West, East are A,B,C or D then ~1/5th of the values 0,1,2 will be replaced by X </p>
 </blockquote>
@@ -268,11 +268,11 @@ A sequence of 36 characters that map the <code>[0..9,A..Z]</code> to another seq
     <span class='clrd-f1'>PXL</span> (<span class='clrd-f2'>PROB</span>) DIR,Q(<span class='clrd-f3'>PXLIT</span>) <span class='clrd-f1'>GOTO</span> 
 </div>
 
-<p>Similar to the AXL instruction but more controlled, with this instruction we can inspect the neighborhood in a single direction dir , but check different extent and value to replace. The argument pxlit is a list of triplets like &quot;13B&quot; meaning that every value 1 with 3s in the direction dir will be replaced by B</p>
+<p>Similar to the AXL instruction but more controlled, with this instruction we can inspect the neighborhood in a single direction dir , but check different extent and value to replace. The argument pxlit is a list of triplets like <code>13B</code> meaning that every value 1 with 3s in the direction dir will be replaced by B</p>
 <blockquote>
 <p><strong>Example:</strong> <code>PXL (1,1)R,1(12A,13B)</code> For every pixel, we replace 1s with 2s to the right of them with As and 1s with 3s to the right of them with B, and this applies every time because our probability is 1.</p>
 </blockquote>
-<h2 id="augmented-pattern-driven-versions-of-the-above-instructions">Augmented pattern driven versions of the above instructions</h2><p>There are 3 more instructions complementing XL,AXL and PXL called BXL,BAXL,BPXL that add an additional argument specifying where they should be applied. That argument describes a rectangular pattern of boxes that span over our image array. The rectangular pattern is defined by 8 parameters x, y, w, t, h, v, c, r.</p>
+<h2 id="augmented-pattern-driven-versions-of-the-above-instructions">Augmented pattern driven versions of the above instructions</h2><p>There are 3 more instructions complementing XL,AXL and PXL called BXL,BAXL,BPXL that add an additional argument specifying where they should be applied. That argument describes a rectangular pattern of boxes that span over our image array. The rectangular pattern is defined by 8 parameters <code>x, y, w, t, h, v, c, r</code>.</p>
 <p><div class='img-container'><img src='images/row_column_layout.png' alt='Rows and Columns Layout'><span>Rows and Columns Layout</span></div></p>
 <ul>
 <li><strong>x, y</strong>  → coordinates of the center of the top right box</li>
@@ -296,7 +296,7 @@ A sequence of 36 characters that map the <code>[0..9,A..Z]</code> to another seq
 			</a>
 		</h1><p>After we mentioned named patterns its time we show how they are defined. The instruction for defining pattern deviates from the overall concept that each instruction has a probability and because of that they are usually placed at the top of the program. Each instruction PAT for defining patterns should have a label so we can refer to it otherwise it will serve no purpose.</p>
 <p><div class='img-container'><img src='images/patterns.png' alt='Named Pattern Definition'><span>Named Pattern Definition</span></div></p>
-<p>A pattern row is defined by a single 12 digit octal number meaning every digit is 3 bits, resulting in 36 values. If we have larger than 12 digits in a definition they carry over to the next row. Subsequent PAT instructions get added to the last named pattern so we don&#39;t have to repeat the label for every row ( you can see that in the example above ). One thing to note here is that we keep leading zeroes when converting to binary.
+<p>A pattern row is defined by a single <strong>12 digit octal number</strong> meaning every digit is 3 bits, resulting in 36 values. If we have larger than 12 digits in a definition they carry over to the next row. Subsequent PAT instructions get added to the last named pattern so we don&#39;t have to repeat the label for every row ( you can see that in the example above ). One thing to note here is that we keep leading zeroes when converting to binary.
 But why only static patterns ?</p>
 <p>Introducing the SVP instruction, a way to grab a portion of the image array and convert it to a named pattern. This instruction does now wrap and its converted to black and white values according to the current WBT settings.</p>
 <div class='lang-explanation'>
